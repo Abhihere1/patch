@@ -1,0 +1,312 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --red: #DC2626;
+  --red-dark: #B91C1C;
+  --red-light: #FEE2E2;
+  --white: #FFFFFF;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Card base */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+/* Badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.badge-open {
+  background: #FEF9C3;
+  color: #92400E;
+}
+
+.badge-escalated {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-resolved {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+/* Primary button */
+.btn-primary {
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-primary:hover {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary button */
+.btn-secondary {
+  background: var(--white);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+/* Option buttons (probable options) */
+.btn-option {
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.btn-option:hover {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+}
+
+/* Input base */
+.input-base {
+  width: 100%;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--white);
+  color: var(--gray-900);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-base:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Chat bubble - user */
+.bubble-user {
+  background: var(--red);
+  color: var(--white);
+  border-radius: 16px 16px 4px 16px;
+  padding: 12px 16px;
+  max-width: 70%;
+  margin-left: auto;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Chat bubble - assistant */
+.bubble-assistant {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-left: 2px solid var(--red);
+  border-radius: 4px 16px 16px 16px;
+  padding: 16px;
+  max-width: 80%;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: var(--shadow-sm);
+  word-break: break-word;
+}
+
+/* Markdown content */
+.prose-patch h1, .prose-patch h2, .prose-patch h3 {
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: var(--gray-900);
+}
+
+.prose-patch h1 { font-size: 18px; }
+.prose-patch h2 { font-size: 16px; }
+.prose-patch h3 { font-size: 14px; }
+
+.prose-patch p {
+  margin-bottom: 8px;
+}
+
+.prose-patch ul, .prose-patch ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.prose-patch li {
+  margin-bottom: 4px;
+}
+
+.prose-patch code {
+  background: var(--gray-100);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+.prose-patch pre {
+  background: var(--gray-100);
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.prose-patch img {
+  border-radius: 8px;
+  margin: 8px 0;
+  max-width: 100%;
+  display: block;
+}
+
+.prose-patch strong {
+  font-weight: 600;
+}
+
+.prose-patch hr {
+  border: none;
+  border-top: 1px solid var(--gray-200);
+  margin: 12px 0;
+}
+
+/* Typing indicator */
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--gray-400);
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* Star rating */
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-300);
+  transition: color 0.1s ease, transform 0.1s ease;
+  font-size: 28px;
+  padding: 2px;
+}
+
+.star-btn:hover,
+.star-btn.active {
+  color: #F59E0B;
+  transform: scale(1.1);
+}
+
+/* Pill badge */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.pill-red {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.pill-green {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.pill-yellow {
+  background: #FEF9C3;
+  color: #92400E;
+}
