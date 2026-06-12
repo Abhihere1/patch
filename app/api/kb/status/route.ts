@@ -8,6 +8,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
-  const vdiAvailable = await kbFileExists('vdi.md');
-  return NextResponse.json({ vdi: vdiAvailable });
+  const [vdiAvailable, scannerAvailable] = await Promise.all([
+    kbFileExists('vdi.md'),
+    kbFileExists('scanner.md'),
+  ]);
+
+  return NextResponse.json({ vdi: vdiAvailable, scanner: scannerAvailable });
 }

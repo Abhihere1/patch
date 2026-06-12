@@ -21,6 +21,7 @@ export default function HomePage() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [incidentCount, setIncidentCount] = useState(0);
   const [vdiKbAvailable, setVdiKbAvailable] = useState<boolean | null>(null);
+  const [scannerKbAvailable, setScannerKbAvailable] = useState<boolean | null>(null);
 
   const [chatMode, setChatMode] = useState<'landing' | 'chat'>('landing');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -61,8 +62,14 @@ export default function HomePage() {
     if (!user) return;
     fetch('/api/kb/status')
       .then(res => res.json())
-      .then(data => setVdiKbAvailable(data.vdi === true))
-      .catch(() => setVdiKbAvailable(false));
+      .then(data => {
+        setVdiKbAvailable(data.vdi === true);
+        setScannerKbAvailable(data.scanner === true);
+      })
+      .catch(() => {
+        setVdiKbAvailable(false);
+        setScannerKbAvailable(false);
+      });
   }, [user]);
 
   useEffect(() => {
@@ -241,6 +248,7 @@ export default function HomePage() {
           <LandingView
             displayName={displayName}
             vdiKbAvailable={vdiKbAvailable}
+            scannerKbAvailable={scannerKbAvailable}
             composerValue={composerValue}
             onComposerChange={setComposerValue}
             onComposerKeyDown={handleComposerKeyDown}
@@ -274,6 +282,7 @@ export default function HomePage() {
 function LandingView({
   displayName,
   vdiKbAvailable,
+  scannerKbAvailable,
   composerValue,
   onComposerChange,
   onComposerKeyDown,
@@ -283,6 +292,7 @@ function LandingView({
 }: {
   displayName: string;
   vdiKbAvailable: boolean | null;
+  scannerKbAvailable: boolean | null;
   composerValue: string;
   onComposerChange: (v: string) => void;
   onComposerKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -351,8 +361,12 @@ function LandingView({
           </p>
         </div>
 
-        <div data-testid="vdi-tile-container" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <div
+          data-testid="category-tiles-container"
+          style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}
+        >
           <VdiTile kbAvailable={vdiKbAvailable} onClick={() => onTileClick('VDI')} />
+          <ScannerTile kbAvailable={scannerKbAvailable} onClick={() => onTileClick('Scanner')} />
         </div>
 
         <LandingComposer
@@ -419,6 +433,69 @@ function VdiTile({ kbAvailable, onClick }: { kbAvailable: boolean | null; onClic
         {kbAvailable !== null && (
           <span
             data-testid="vdi-kb-badge"
+            className={`badge ${kbAvailable ? 'badge-resolved' : 'badge-escalated'}`}
+          >
+            {kbAvailable ? 'KB Available' : 'KB Missing'}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function ScannerTile({ kbAvailable, onClick }: { kbAvailable: boolean | null; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      data-testid="scanner-tile"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: '#FFFFFF',
+        border: `1px solid ${hovered ? '#DC2626' : '#E5E7EB'}`,
+        borderRadius: 16,
+        padding: '28px 40px',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 12,
+        boxShadow: hovered ? '0 4px 16px rgba(220,38,38,0.12)' : '0 1px 4px rgba(0,0,0,0.06)',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        transition: 'all 0.2s ease',
+        minWidth: 200,
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          background: hovered ? '#FEE2E2' : '#F3F4F6',
+          borderRadius: 12,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background 0.2s ease',
+        }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="6" width="18" height="12" rx="2" stroke={hovered ? '#DC2626' : '#6B7280'} strokeWidth="1.5" />
+          <path d="M7 10h10M7 14h6" stroke={hovered ? '#DC2626' : '#6B7280'} strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M17 3v3M17 18v3" stroke={hovered ? '#DC2626' : '#6B7280'} strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <div
+          data-testid="scanner-tile-label"
+          style={{ fontWeight: 600, fontSize: 15, color: '#111827', marginBottom: 6 }}
+        >
+          Scanner
+        </div>
+        {kbAvailable !== null && (
+          <span
+            data-testid="scanner-kb-badge"
             className={`badge ${kbAvailable ? 'badge-resolved' : 'badge-escalated'}`}
           >
             {kbAvailable ? 'KB Available' : 'KB Missing'}
