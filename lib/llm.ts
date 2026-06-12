@@ -1,9 +1,17 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { LLMResponse, ChatMessage } from '@/types';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Validate required Ollama env vars at import time so failures are obvious.
+function getOllamaConfig(): { baseUrl: string; apiKey: string; model: string } {
+  const baseUrl = process.env.OLLAMA_BASE_URL;
+  const apiKey = process.env.OLLAMA_API_KEY;
+  const model = process.env.OLLAMA_MODEL;
+
+  if (!baseUrl) throw new Error('Missing required environment variable: OLLAMA_BASE_URL');
+  if (!apiKey) throw new Error('Missing required environment variable: OLLAMA_API_KEY');
+  if (!model) throw new Error('Missing required environment variable: OLLAMA_MODEL');
+
+  return { baseUrl, apiKey, model };
+}
 
 const SYSTEM_PROMPT = `You are Patch, a self-service IT support agent for Discount Tire associates. Your role is to guide users through troubleshooting steps using ONLY the provided Knowledge Base (KB) content and conversation history.
 
@@ -76,25 +84,54 @@ export async function callLLM(
   history: ChatMessage[],
   userMessage: string
 ): Promise<LLMResponse> {
-  const messages: Anthropic.MessageParam[] = [
+  let config: ReturnType<typeof getOllamaConfig>;
+  try {
+    config = getOllamaConfig();
+  } catch (err) {
+    console.error('Ollama configuration error:', err);
+    return getFallbackResponse();
+  }
+
+  const systemWithKb = `${SYSTEM_PROMPT}\n\n## Knowledge Base Context\n${kbContext}`;
+
+  const ollamaMessages: { role: string; content: string }[] = [
+    { role: 'system', content: systemWithKb },
     ...history.map(msg => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     })),
-    { role: 'user' as const, content: userMessage },
+    { role: 'user', content: userMessage },
   ];
 
-  const systemWithKb = `${SYSTEM_PROMPT}\n\n## Knowledge Base Context\n${kbContext}`;
-
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: systemWithKb,
-      messages,
+    const res = await fetch(`${config.baseUrl}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: ollamaMessages,
+        stream: false,
+      }),
     });
 
-    const rawText = response.content[0].type === 'text' ? response.content[0].text : '';
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error(`Ollama API error ${res.status}:`, errText);
+      return getFallbackResponse();
+    }
+
+    const data = await res.json();
+    const rawText: string =
+      data?.message?.content ?? data?.choices?.[0]?.message?.content ?? '';
+
+    if (!rawText) {
+      console.error('Ollama returned empty content. Full response:', JSON.stringify(data));
+      return getFallbackResponse();
+    }
+
     return parseAndNormalizeLLMResponse(rawText);
   } catch (error) {
     console.error('LLM call failed:', error);
@@ -131,14 +168,14 @@ function normalizeLLMResponse(parsed: Partial<LLMResponse>): LLMResponse {
   return {
     response: typeof parsed.response === 'string' ? parsed.response : 'I encountered an issue processing your request. Please try again.',
     user_probable_options: Array.isArray(parsed.user_probable_options) ? parsed.user_probable_options : [],
-    single_select: parsed.single_select === true || parsed.single_select === 'true' as unknown,
+    single_select: parsed.single_select === true || parsed.single_select === ('true' as unknown),
     input_card_variables: Array.isArray(parsed.input_card_variables) ? parsed.input_card_variables : [],
-    needs_count_first: parsed.needs_count_first === true || parsed.needs_count_first === 'true' as unknown,
+    needs_count_first: parsed.needs_count_first === true || parsed.needs_count_first === ('true' as unknown),
     count_prompt: typeof parsed.count_prompt === 'string' ? parsed.count_prompt : '',
     total_cards: typeof parsed.total_cards === 'number' ? parsed.total_cards : (typeof parsed.total_cards === 'string' ? parseInt(parsed.total_cards, 10) || 0 : 0),
-    should_escalate: parsed.should_escalate === true || parsed.should_escalate === 'true' as unknown,
+    should_escalate: parsed.should_escalate === true || parsed.should_escalate === ('true' as unknown),
     escalation_data: typeof parsed.escalation_data === 'object' && parsed.escalation_data !== null ? parsed.escalation_data : {},
-    should_resolve: parsed.should_resolve === true || parsed.should_resolve === 'true' as unknown,
+    should_resolve: parsed.should_resolve === true || parsed.should_resolve === ('true' as unknown),
   };
 }
 
